@@ -285,9 +285,8 @@ class MPU:
             value = self._get_byte_at(address)
 
         # Do
-        carry_in = 1 if self.registers.CARRY else 0
         self.registers.modify_flag(Flag.CARRY, (value & 0b1000_0000) != 0)
-        value = ((value << 1) & 0xFF) + carry_in
+        value = (value << 1) & 0xFF
         self._registers.modify_nz_flags(value)
 
         # Write

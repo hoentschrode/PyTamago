@@ -15,7 +15,7 @@ def test_ASL_flags(mpu: MPU):
         {"n": 0b1000_0001, "c": False, "expectedFlags": "nv-bdiCz", "expectedValue": 0b0000_0010},
         {"n": 0b0000_0001, "c": False, "expectedFlags": "nv-bdicz", "expectedValue": 0b0000_0010},
         {"n": 0b0100_0001, "c": False, "expectedFlags": "Nv-bdicz", "expectedValue": 0b1000_0010},
-        {"n": 0b0000_0001, "c": True, "expectedFlags": "nv-bdicz", "expectedValue": 0b0000_0011},
+        {"n": 0b0000_0001, "c": True, "expectedFlags": "nv-bdicz", "expectedValue": 0b0000_0010},
         {"n": 0b1000_0001, "c": False, "expectedFlags": "nv-bdiCz", "expectedValue": 0b0000_0010},
         {"n": 0b1000_0000, "c": False, "expectedFlags": "nv-bdiCZ", "expectedValue": 0b0000_0000},
     ]
