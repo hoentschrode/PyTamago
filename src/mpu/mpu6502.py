@@ -1,5 +1,4 @@
 """6502 MPU."""
-from email.headerregistry import Address
 from typing import List, Optional
 from .utils import (
     Instruction,
@@ -294,6 +293,19 @@ class MPU:
             self.registers.A = value
         else:
             self._set_byte_at(address, value)
+
+    @InstructionDecorator(
+        opcode=0x24, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="BIT"
+    )
+    @InstructionDecorator(
+        opcode=0x2C, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="BIT"
+    )
+    def inst_BIT(self, instruction: DecodedInstruction):
+        """BIT (test BITs)."""
+        value = self._get_decoded_value(instruction)
+        self.registers.modify_flag(Flag.ZERO, (self.registers.A & value) == 0)
+        self.registers.modify_flag(Flag.NEGATIVE, (value & Flag.NEGATIVE.value) != 0)
+        self.registers.modify_flag(Flag.OVERFLOW, (value & Flag.OVERFLOW.value) != 0)
 
     @InstructionDecorator(
         opcode=0xA9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="LDA"
