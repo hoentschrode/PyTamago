@@ -7,6 +7,7 @@ from .utils import (
     Registers,
     Flag,
     AddressMode,
+    two_complement_to_dec,
 )
 
 
@@ -140,13 +141,30 @@ class MPU:
             return None
         elif instruction.address_mode == AddressMode.ACCUMULATOR:
             return self.registers.A
-        elif instruction.address_mode == AddressMode.IMMEDIATE:
+        elif instruction.address_mode in [AddressMode.IMMEDIATE, AddressMode.BRANCH]:
             return instruction.operand
 
         address = self._get_effective_address(instruction)
         if address is None:
             return None
         return self._get_byte_at(address)
+
+    def _modify_pc_for_conditional_branch(
+        self, condition: bool, instruction: DecodedInstruction
+    ) -> None:
+        """
+        Modify PC according to condition.
+
+        Calculates additional cycles on page boundary crossings too.
+        """
+        if condition:
+            instruction.extra_cycles += 1
+            displacement = two_complement_to_dec(self._get_decoded_value(instruction))
+            address = self.registers.PC + displacement
+            # PC already moved !
+            if (self.registers.PC - 2) & 0xFF00 != address & 0xFF00:
+                instruction.extra_cycles += 1
+            self.registers.PC = address & 0xFFFF
 
     @InstructionDecorator(
         opcode=0x69, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="ADC"
@@ -306,6 +324,62 @@ class MPU:
         self.registers.modify_flag(Flag.ZERO, (self.registers.A & value) == 0)
         self.registers.modify_flag(Flag.NEGATIVE, (value & Flag.NEGATIVE.value) != 0)
         self.registers.modify_flag(Flag.OVERFLOW, (value & Flag.OVERFLOW.value) != 0)
+
+    @InstructionDecorator(
+        opcode=0x10, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BPL"
+    )
+    def inst_BPL(self, instruction: DecodedInstruction):
+        """BPL (Branch on PLus)."""
+        self._modify_pc_for_conditional_branch(not self.registers.NEGATIVE, instruction)
+
+    @InstructionDecorator(
+        opcode=0x30, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BMI"
+    )
+    def inst_BMI(self, instruction: DecodedInstruction):
+        """BMI (Branch on MInus)."""
+        self._modify_pc_for_conditional_branch(self.registers.NEGATIVE, instruction)
+
+    @InstructionDecorator(
+        opcode=0x50, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BVC"
+    )
+    def inst_BVC(self, instruction: DecodedInstruction):
+        """Branch on oVerflow Clear."""
+        self._modify_pc_for_conditional_branch(not self.registers.OVERFLOW, instruction)
+
+    @InstructionDecorator(
+        opcode=0x70, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BVS"
+    )
+    def inst_BVS(self, instruction: DecodedInstruction):
+        """Branch on oVerflow Set."""
+        self._modify_pc_for_conditional_branch(self.registers.OVERFLOW, instruction)
+
+    @InstructionDecorator(
+        opcode=0x90, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BCC"
+    )
+    def inst_BCC(self, instruction: DecodedInstruction):
+        """Branch on Carry Clear."""
+        self._modify_pc_for_conditional_branch(not self.registers.CARRY, instruction)
+
+    @InstructionDecorator(
+        opcode=0xB0, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BCS"
+    )
+    def inst_BCS(self, instruction: DecodedInstruction):
+        """Branch on Carry Set."""
+        self._modify_pc_for_conditional_branch(self.registers.CARRY, instruction)
+
+    @InstructionDecorator(
+        opcode=0xD0, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BNE"
+    )
+    def inst_BNE(self, instruction: DecodedInstruction):
+        """Branch on Not Equal."""
+        self._modify_pc_for_conditional_branch(not self.registers.ZERO, instruction)
+
+    @InstructionDecorator(
+        opcode=0xF0, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BEQ"
+    )
+    def inst_BEQ(self, instruction: DecodedInstruction):
+        """Branch on EQual."""
+        self._modify_pc_for_conditional_branch(self.registers.ZERO, instruction)
 
     @InstructionDecorator(
         opcode=0xA9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="LDA"

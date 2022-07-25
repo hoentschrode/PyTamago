@@ -8,6 +8,7 @@ class AddressMode(Enum):
     """Adressing modes."""
 
     NONE = auto()
+    BRANCH = auto()
     ACCUMULATOR = auto()
     IMMEDIATE = auto()
     ZEROPAGE = auto()
@@ -41,7 +42,12 @@ class DecodedInstruction(Instruction):
 
     def _format_operand(self) -> str:
         """Format the operand according to address mode."""
-        if self.address_mode == AddressMode.ACCUMULATOR:
+        if self.address_mode == AddressMode.BRANCH:
+            displacement = two_complement_to_dec(self.operand)
+            if displacement >= 0:
+                return f" ${displacement:02X}"
+            return f" -${-displacement:02X}"
+        elif self.address_mode == AddressMode.ACCUMULATOR:
             return " A"
         elif self.address_mode == AddressMode.IMMEDIATE:
             return f" #${self.operand:02X}"
@@ -63,13 +69,13 @@ class DecodedInstruction(Instruction):
 
     def print(self, include_opcodes=False) -> str:
         """Disassemble instruction and pretty print."""
-        sfmt = "{address:04x}:{opcodes}{mnemonic}"
+        sfmt = "{address:04X}:{opcodes}{mnemonic}"
 
         opcodes = ""
         if include_opcodes:
-            opcodes = f" {self.opcode:02x}"
+            opcodes = f" {self.opcode:02X}"
             if self.bytes == 2:
-                opcodes += f" {self.operand:02x}"
+                opcodes += f" {self.operand:02X}"
             elif self.bytes == 3:
                 high = self.operand >> 8
                 low = self.operand & 0x00FF
@@ -225,3 +231,19 @@ def make_instruction_decorator(instructions: List[Instruction]):
 def byte2bin(value: int) -> str:
     """Convert into to binary string."""
     return "{0:08b}".format(value & 0xFF)
+
+
+def two_complement_to_dec(value: int) -> int:
+    """Convert two-complement value into signed integer -128...127."""
+    value &= 0xFF
+    if value & 0x80 != 0:
+        return (value & 0x7F) - 0x80
+    return value
+
+
+def dec_to_two_complement(value: int) -> int:
+    """Convert signed decimal integer -128...127 into two-complement."""
+    value &= 0xFF
+    if value >= 0:
+        return value
+    return value - 0x80
