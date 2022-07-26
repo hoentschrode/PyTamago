@@ -193,6 +193,11 @@ class MPU:
                 instruction.extra_cycles += 1
             self.registers.PC = address & 0xFFFF
 
+    def cmp_x(self, register_value: int, value_to_compare: int):
+        """Compare a value to a register value and set CZN-flags accordingly."""
+        self.registers.modify_flag(Flag.CARRY, register_value >= value_to_compare)
+        self.registers.modify_nz_flags((register_value - value_to_compare))
+
     @InstructionDecorator(
         opcode=0x69, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="ADC"
     )
@@ -421,6 +426,63 @@ class MPU:
         self._push(self.registers.FLAGS | Flag.UNUSED.value)
         self._registers.set_flag(Flag.INTERRUPT)
         self._registers.PC = self._get_word_at(self.MEM_VECTOR_IRQ_BRK)
+
+    @InstructionDecorator(
+        opcode=0xC9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="CMP"
+    )
+    @InstructionDecorator(
+        opcode=0xC5, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="CMP"
+    )
+    @InstructionDecorator(
+        opcode=0xD5, bytes=2, cycles=4, address_mode=AddressMode.ZEROPAGE_X, mnemonic="CMP"
+    )
+    @InstructionDecorator(
+        opcode=0xCD, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="CMP"
+    )
+    @InstructionDecorator(
+        opcode=0xDD, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_X, mnemonic="CMP"
+    )
+    @InstructionDecorator(
+        opcode=0xD9, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_Y, mnemonic="CMP"
+    )
+    @InstructionDecorator(
+        opcode=0xC1, bytes=2, cycles=6, address_mode=AddressMode.INDIRECT_X, mnemonic="CMP"
+    )
+    @InstructionDecorator(
+        opcode=0xD1, bytes=2, cycles=5, address_mode=AddressMode.INDIRECT_Y, mnemonic="CMP"
+    )
+    def inst_CMP(self, instruction: DecodedInstruction):
+        """CMP (CoMPare accumulator)."""
+        value = self._get_decoded_value(instruction)
+        self.cmp_x(self.registers.A, value)
+
+    @InstructionDecorator(
+        opcode=0xE0, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="CPX"
+    )
+    @InstructionDecorator(
+        opcode=0xE4, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="CPX"
+    )
+    @InstructionDecorator(
+        opcode=0xEC, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="CPX"
+    )
+    def inst_CPX(self, instruction: DecodedInstruction):
+        """CPX (ComPare X register)."""
+        value = self._get_decoded_value(instruction)
+        self.cmp_x(self.registers.X, value)
+
+    @InstructionDecorator(
+        opcode=0xC0, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="CPY"
+    )
+    @InstructionDecorator(
+        opcode=0xC4, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="CPY"
+    )
+    @InstructionDecorator(
+        opcode=0xCC, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="CPY"
+    )
+    def inst_CPY(self, instruction: DecodedInstruction):
+        """CPY (ComPare Y register)."""
+        value = self._get_decoded_value(instruction)
+        self.cmp_x(self.registers.Y, value)
 
     @InstructionDecorator(
         opcode=0xA9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="LDA"
