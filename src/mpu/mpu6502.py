@@ -485,6 +485,44 @@ class MPU:
         self._cmp_x(self.registers.Y, value)
 
     @InstructionDecorator(
+        opcode=0xC6, bytes=2, cycles=5, address_mode=AddressMode.ZEROPAGE, mnemonic="DEC"
+    )
+    @InstructionDecorator(
+        opcode=0xD6, bytes=2, cycles=6, address_mode=AddressMode.ZEROPAGE_X, mnemonic="DEC"
+    )
+    @InstructionDecorator(
+        opcode=0xCE, bytes=3, cycles=6, address_mode=AddressMode.ABSOLUTE, mnemonic="DEC"
+    )
+    @InstructionDecorator(
+        opcode=0xDE, bytes=3, cycles=7, address_mode=AddressMode.ABSOLUTE_X, mnemonic="DEC"
+    )
+    def inst_DEC(self, instruction: DecodedInstruction):
+        """DEC (DECrement memory)."""
+        address = self._get_effective_address(instruction)
+        value = (self._get_byte_at(address) - 1) & 0xFF
+        self.registers.modify_nz_flags(value)
+        self._set_byte_at(address, value)
+
+    @InstructionDecorator(
+        opcode=0xE6, bytes=2, cycles=5, address_mode=AddressMode.ZEROPAGE, mnemonic="INC"
+    )
+    @InstructionDecorator(
+        opcode=0xF6, bytes=2, cycles=6, address_mode=AddressMode.ZEROPAGE_X, mnemonic="INC"
+    )
+    @InstructionDecorator(
+        opcode=0xEE, bytes=3, cycles=6, address_mode=AddressMode.ABSOLUTE, mnemonic="INC"
+    )
+    @InstructionDecorator(
+        opcode=0xFE, bytes=3, cycles=7, address_mode=AddressMode.ABSOLUTE_X, mnemonic="INC"
+    )
+    def inst_INC(self, instruction: DecodedInstruction):
+        """INC (INCrement memory)."""
+        address = self._get_effective_address(instruction)
+        value = (self._get_byte_at(address) + 1) & 0xFF
+        self.registers.modify_nz_flags(value)
+        self._set_byte_at(address, value)
+
+    @InstructionDecorator(
         opcode=0xA9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="LDA"
     )
     @InstructionDecorator(
