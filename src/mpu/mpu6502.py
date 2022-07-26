@@ -193,7 +193,7 @@ class MPU:
                 instruction.extra_cycles += 1
             self.registers.PC = address & 0xFFFF
 
-    def cmp_x(self, register_value: int, value_to_compare: int):
+    def _cmp_x(self, register_value: int, value_to_compare: int):
         """Compare a value to a register value and set CZN-flags accordingly."""
         self.registers.modify_flag(Flag.CARRY, register_value >= value_to_compare)
         self.registers.modify_nz_flags((register_value - value_to_compare))
@@ -454,7 +454,7 @@ class MPU:
     def inst_CMP(self, instruction: DecodedInstruction):
         """CMP (CoMPare accumulator)."""
         value = self._get_decoded_value(instruction)
-        self.cmp_x(self.registers.A, value)
+        self._cmp_x(self.registers.A, value)
 
     @InstructionDecorator(
         opcode=0xE0, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="CPX"
@@ -468,7 +468,7 @@ class MPU:
     def inst_CPX(self, instruction: DecodedInstruction):
         """CPX (ComPare X register)."""
         value = self._get_decoded_value(instruction)
-        self.cmp_x(self.registers.X, value)
+        self._cmp_x(self.registers.X, value)
 
     @InstructionDecorator(
         opcode=0xC0, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="CPY"
@@ -482,7 +482,7 @@ class MPU:
     def inst_CPY(self, instruction: DecodedInstruction):
         """CPY (ComPare Y register)."""
         value = self._get_decoded_value(instruction)
-        self.cmp_x(self.registers.Y, value)
+        self._cmp_x(self.registers.Y, value)
 
     @InstructionDecorator(
         opcode=0xA9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="LDA"
