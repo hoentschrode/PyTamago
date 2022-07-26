@@ -14,6 +14,12 @@ from .utils import (
 class MPU:
     """MPU definition."""
 
+    # Memory locations
+    MEM_STACK = 0x0100
+    MEM_VECTOR_NMI = 0xFFFA
+    MEM_VECTOR_RESET = 0xFFFC
+    MEM_VECTOR_IRQ_BRK = 0xFFFE
+
     _instructions: List[Instruction] = [None] * (0xFF + 1)
     InstructionDecorator = make_instruction_decorator(_instructions)
 
@@ -38,7 +44,7 @@ class MPU:
     def reset(self):
         """Perform MPU reset."""
         self._registers.PC = self._start_pc
-        self._registers.SP = 0xFFFF
+        self._registers.SP = 0xFF
         self._registers.A = 0
         self._registers.X = 0
         self._registers.Y = 0
@@ -85,6 +91,26 @@ class MPU:
         zeropage_address = address & 0xFF
         return self._memory[zeropage_address] + ((self._memory[(zeropage_address + 1) & 0xFF]) << 8)
 
+    def _push(self, value):
+        self._set_byte_at(self.MEM_STACK + self.registers.SP, value)
+        self.registers.SP -= 1
+        self.registers.SP &= 0xFF
+
+    def _push_word(self, value: int):
+        value &= 0xFFFF
+        self._push((value >> 8) & 0xFF)
+        self._push(value & 0xFF)
+
+    def _pop(self) -> int:
+        self.registers.SP += 1
+        self.registers.SP &= 0xFF
+        return self._get_byte_at(self.MEM_STACK + self.registers.SP)
+
+    def _pop_word(self) -> int:
+        low_byte = self._pop()
+        high_byte = self._pop()
+        return ((high_byte << 8) + low_byte) & 0xFFFF
+
     @property
     def registers(self) -> Registers:
         """Property getter for registers."""
@@ -97,7 +123,7 @@ class MPU:
 
     def inst_not_implemented(*args, **kwargs):
         """Do nothing. Just a dummy for unmapped opcodes."""
-        return
+        raise NotImplementedError("Opcode not implementen!")
 
     def _get_effective_address(self, instruction: DecodedInstruction) -> Optional[int]:
         """
@@ -109,6 +135,7 @@ class MPU:
             AddressMode.NONE,
             AddressMode.ACCUMULATOR,
             AddressMode.IMMEDIATE,
+            AddressMode.IMPLIED,
         ]:
             return None
         elif instruction.address_mode in [AddressMode.ZEROPAGE, AddressMode.ABSOLUTE]:
@@ -380,6 +407,20 @@ class MPU:
     def inst_BEQ(self, instruction: DecodedInstruction):
         """Branch on EQual."""
         self._modify_pc_for_conditional_branch(self.registers.ZERO, instruction)
+
+    @InstructionDecorator(
+        opcode=0x00, bytes=1, cycles=7, address_mode=AddressMode.IMPLIED, mnemonic="BRK"
+    )
+    def inst_BRK(self, instruction: DecodedInstruction):
+        """BReaK."""
+        self.registers.PC += 1
+        self.registers.PC &= 0xFFFF
+        self._push_word(self.registers.PC)
+
+        self.registers.set_flag(Flag.BREAK)
+        self._push(self.registers.FLAGS | Flag.UNUSED.value)
+        self._registers.set_flag(Flag.INTERRUPT)
+        self._registers.PC = self._get_word_at(self.MEM_VECTOR_IRQ_BRK)
 
     @InstructionDecorator(
         opcode=0xA9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="LDA"

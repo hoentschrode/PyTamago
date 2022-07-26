@@ -10,6 +10,7 @@ class AddressMode(Enum):
     NONE = auto()
     BRANCH = auto()
     ACCUMULATOR = auto()
+    IMPLIED = auto()
     IMMEDIATE = auto()
     ZEROPAGE = auto()
     ZEROPAGE_X = auto()
@@ -65,6 +66,9 @@ class DecodedInstruction(Instruction):
             return f" (${self.operand:02X},X)"
         elif self.address_mode == AddressMode.INDIRECT_Y:
             return f" (${self.operand:02X}),Y"
+        elif self.address_mode == AddressMode.IMPLIED:
+            return ""
+
         raise NotImplementedError(f"Address mode f{self.address_mode.name} not implemented.")
 
     def print(self, include_opcodes=False) -> str:
@@ -97,7 +101,7 @@ class Flag(Enum):
 
     NEGATIVE = 0b1000_0000
     OVERFLOW = 0b0100_0000
-
+    UNUSED = 0x0010_0000
     BREAK = 0b0001_0000
     DECIMAL = 0b0000_1000
     INTERRUPT = 0b0000_0100
@@ -163,6 +167,11 @@ class Registers:
     def OVERFLOW(self) -> bool:
         """Property getter for O flag."""
         return self.FLAGS & Flag.OVERFLOW.value > 0
+
+    @property
+    def UNUSED(self) -> bool:
+        """Property getter for U flag."""
+        return self.FLAGS & Flag.UNUSED.value > 0
 
     @property
     def BREAK(self) -> bool:
