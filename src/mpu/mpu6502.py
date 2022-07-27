@@ -504,6 +504,35 @@ class MPU:
         self._set_byte_at(address, value)
 
     @InstructionDecorator(
+        opcode=0x49, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="EOR"
+    )
+    @InstructionDecorator(
+        opcode=0x45, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="EOR"
+    )
+    @InstructionDecorator(
+        opcode=0x55, bytes=2, cycles=4, address_mode=AddressMode.ZEROPAGE_X, mnemonic="EOR"
+    )
+    @InstructionDecorator(
+        opcode=0x4D, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="EOR"
+    )
+    @InstructionDecorator(
+        opcode=0x5D, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_X, mnemonic="EOR"
+    )
+    @InstructionDecorator(
+        opcode=0x59, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_Y, mnemonic="EOR"
+    )
+    @InstructionDecorator(
+        opcode=0x41, bytes=2, cycles=6, address_mode=AddressMode.INDIRECT_X, mnemonic="EOR"
+    )
+    @InstructionDecorator(
+        opcode=0x51, bytes=2, cycles=5, address_mode=AddressMode.INDIRECT_Y, mnemonic="EOR"
+    )
+    def inst_EOR(self, instruction: DecodedInstruction):
+        """EOR (bitwise Exclusive OR)."""
+        self._registers.A ^= self._get_decoded_value(instruction)
+        self._registers.modify_nz_flags(self._registers.A)
+
+    @InstructionDecorator(
         opcode=0xE6, bytes=2, cycles=5, address_mode=AddressMode.ZEROPAGE, mnemonic="INC"
     )
     @InstructionDecorator(
