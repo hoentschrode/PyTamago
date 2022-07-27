@@ -1,6 +1,9 @@
 """Test MPU flag behaviour."""
 import pytest
 from mpu.utils import Registers, Flag
+from utils import write_memory
+from fixtures import *  # noqa
+from mpu.mpu6502 import MPU
 
 
 @pytest.fixture
@@ -69,3 +72,80 @@ def test_set_flags(registers: Registers):
     assert registers.FLAGS == 0
     registers.set_flags([Flag.CARRY, Flag.OVERFLOW])
     assert registers.FLAGS == Flag.CARRY.value | Flag.OVERFLOW.value
+
+
+def test_SEC(mpu: MPU):
+    """Test SEC."""
+    write_memory(mpu._memory, 0x1000, (0x38,))
+    assert str(mpu.decode(0x1000)) == "1000: SEC", "Disassembler error."
+    mpu.registers.PC = 0x1000
+    mpu.registers.reset_flag(Flag.CARRY)
+    assert mpu.registers.flags2str() == "nv-bdicz"
+    mpu.step()
+    assert mpu.registers.flags2str() == "nv-bdiCz"
+
+
+def test_CLC(mpu: MPU):
+    """Test CLC."""
+    write_memory(mpu._memory, 0x1000, (0x18,))
+    assert str(mpu.decode(0x1000)) == "1000: CLC", "Disassembler error."
+    mpu.registers.PC = 0x1000
+    mpu.registers.set_flag(Flag.CARRY)
+    assert mpu.registers.flags2str() == "nv-bdiCz"
+    mpu.step()
+    assert mpu.registers.flags2str() == "nv-bdicz"
+
+
+def test_SED(mpu: MPU):
+    """Test SED."""
+    write_memory(mpu._memory, 0x1000, (0xF8,))
+    assert str(mpu.decode(0x1000)) == "1000: SED", "Disassembler error."
+    mpu.registers.PC = 0x1000
+    mpu.registers.reset_flag(Flag.DECIMAL)
+    assert mpu.registers.flags2str() == "nv-bdicz"
+    mpu.step()
+    assert mpu.registers.flags2str() == "nv-bDicz"
+
+
+def test_CLD(mpu: MPU):
+    """Test CLD."""
+    write_memory(mpu._memory, 0x1000, (0xD8,))
+    assert str(mpu.decode(0x1000)) == "1000: CLD", "Disassembler error."
+    mpu.registers.PC = 0x1000
+    mpu.registers.set_flag(Flag.DECIMAL)
+    assert mpu.registers.flags2str() == "nv-bDicz"
+    mpu.step()
+    assert mpu.registers.flags2str() == "nv-bdicz"
+
+
+def test_SEI(mpu: MPU):
+    """Test SEI."""
+    write_memory(mpu._memory, 0x1000, (0x78,))
+    assert str(mpu.decode(0x1000)) == "1000: SEI", "Disassembler error."
+    mpu.registers.PC = 0x1000
+    mpu.registers.reset_flag(Flag.INTERRUPT)
+    assert mpu.registers.flags2str() == "nv-bdicz"
+    mpu.step()
+    assert mpu.registers.flags2str() == "nv-bdIcz"
+
+
+def test_CLI(mpu: MPU):
+    """Test CLI."""
+    write_memory(mpu._memory, 0x1000, (0x58,))
+    assert str(mpu.decode(0x1000)) == "1000: CLI", "Disassembler error."
+    mpu.registers.PC = 0x1000
+    mpu.registers.set_flag(Flag.INTERRUPT)
+    assert mpu.registers.flags2str() == "nv-bdIcz"
+    mpu.step()
+    assert mpu.registers.flags2str() == "nv-bdicz"
+
+
+def test_CLV(mpu: MPU):
+    """Test CLV."""
+    write_memory(mpu._memory, 0x1000, (0xB8,))
+    assert str(mpu.decode(0x1000)) == "1000: CLV", "Disassembler error."
+    mpu.registers.PC = 0x1000
+    mpu.registers.set_flag(Flag.OVERFLOW)
+    assert mpu.registers.flags2str() == "nV-bdicz"
+    mpu.step()
+    assert mpu.registers.flags2str() == "nv-bdicz"

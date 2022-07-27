@@ -428,6 +428,34 @@ class MPU:
         self._registers.PC = self._get_word_at(self.MEM_VECTOR_IRQ_BRK)
 
     @InstructionDecorator(
+        opcode=0x18, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="CLC"
+    )
+    def inst_CLC(self, instruction: DecodedInstruction):
+        """CLC (CLear Carry)."""
+        self.registers.reset_flag(Flag.CARRY)
+
+    @InstructionDecorator(
+        opcode=0xD8, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="CLD"
+    )
+    def inst_CLD(self, instruction: DecodedInstruction):
+        """CLD (CLear Decimal)."""
+        self.registers.reset_flag(Flag.DECIMAL)
+
+    @InstructionDecorator(
+        opcode=0x58, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="CLI"
+    )
+    def inst_CLI(self, instruction: DecodedInstruction):
+        """CLI (CLear Interrupt)."""
+        self.registers.reset_flag(Flag.INTERRUPT)
+
+    @InstructionDecorator(
+        opcode=0xB8, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="CLV"
+    )
+    def inst_CLV(self, instruction: DecodedInstruction):
+        """CLV (CLear oVerflow)."""
+        self.registers.reset_flag(Flag.OVERFLOW)
+
+    @InstructionDecorator(
         opcode=0xC9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="CMP"
     )
     @InstructionDecorator(
@@ -579,3 +607,24 @@ class MPU:
         """LDA (LoaD Accumulator)."""
         self._registers.A = self._get_decoded_value(instruction)
         self._registers.modify_nz_flags(self._registers.A)
+
+    @InstructionDecorator(
+        opcode=0x38, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="SEC"
+    )
+    def inst_SEC(self, instruction: DecodedInstruction):
+        """SEC (SEt Carry)."""
+        self.registers.set_flag(Flag.CARRY)
+
+    @InstructionDecorator(
+        opcode=0xF8, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="SED"
+    )
+    def inst_SED(self, instruction: DecodedInstruction):
+        """SED (SEt Decimal)."""
+        self.registers.set_flag(Flag.DECIMAL)
+
+    @InstructionDecorator(
+        opcode=0x78, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="SEI"
+    )
+    def inst_SEI(self, instruction: DecodedInstruction):
+        """SEI (SEt Interrupt)."""
+        self.registers.set_flag(Flag.INTERRUPT)
