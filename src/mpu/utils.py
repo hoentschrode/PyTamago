@@ -17,6 +17,7 @@ class AddressMode(Enum):
     ABSOLUTE = auto()
     ABSOLUTE_X = auto()
     ABSOLUTE_Y = auto()
+    INDIRECT = auto()
     INDIRECT_X = auto()
     INDIRECT_Y = auto()
 
@@ -62,6 +63,8 @@ class DecodedInstruction(Instruction):
             return f" ${self.operand:04X},X"
         elif self.address_mode == AddressMode.ABSOLUTE_Y:
             return f" ${self.operand:04X},Y"
+        elif self.address_mode == AddressMode.INDIRECT:
+            return f" (${self.operand:04X})"
         elif self.address_mode == AddressMode.INDIRECT_X:
             return f" (${self.operand:02X},X)"
         elif self.address_mode == AddressMode.INDIRECT_Y:

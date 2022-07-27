@@ -82,8 +82,12 @@ class MPU:
         """Write byte to memory."""
         self._memory[address] = value & 0xFF
 
-    def _get_word_at(self, address: int) -> int:
+    def _get_word_at(self, address: int, allow_page_overflow=True) -> int:
         """Read word from memory, wraps at 0xffff."""
+        if not allow_page_overflow:
+            # Special behaviour for indirect JMP: Wraps at page end!
+            high = (address & 0xFF00) + (((address & 0x00FF) + 1) & 0x00FF)
+            return self._memory[address] + (self._memory[high] << 8)
         return self._memory[address] + (self._memory[(address + 1) & 0xFFFF] << 8)
 
     def _get_word_at_zeropage(self, address: int) -> int:
@@ -152,6 +156,8 @@ class MPU:
             if (instruction.operand & 0x00FF) + self._registers.Y > 0xFF:
                 instruction.extra_cycles = 1
             return (instruction.operand + self._registers.Y) & 0xFFFF
+        elif instruction.address_mode == AddressMode.INDIRECT:
+            return self._get_word_at(instruction.operand, False) & 0xFFFF
         elif instruction.address_mode == AddressMode.INDIRECT_X:
             return self._get_word_at_zeropage((instruction.operand + self._registers.X) & 0xFF)
         elif instruction.address_mode == AddressMode.INDIRECT_Y:
@@ -168,12 +174,18 @@ class MPU:
             return None
         elif instruction.address_mode == AddressMode.ACCUMULATOR:
             return self.registers.A
-        elif instruction.address_mode in [AddressMode.IMMEDIATE, AddressMode.BRANCH]:
+        elif instruction.address_mode in [
+            AddressMode.IMMEDIATE,
+            AddressMode.BRANCH,
+        ]:
             return instruction.operand
 
         address = self._get_effective_address(instruction)
         if address is None:
             return None
+        elif instruction.address_mode == AddressMode.INDIRECT:
+            return address
+
         return self._get_byte_at(address)
 
     def _modify_pc_for_conditional_branch(
@@ -578,6 +590,16 @@ class MPU:
         value = (self._get_byte_at(address) + 1) & 0xFF
         self.registers.modify_nz_flags(value)
         self._set_byte_at(address, value)
+
+    @InstructionDecorator(
+        opcode=0x4C, bytes=3, cycles=3, address_mode=AddressMode.ABSOLUTE, mnemonic="JMP"
+    )
+    @InstructionDecorator(
+        opcode=0x6C, bytes=3, cycles=5, address_mode=AddressMode.INDIRECT, mnemonic="JMP"
+    )
+    def inst_JMP(self, instruction: DecodedInstruction):
+        """JMP (JuMP)."""
+        self.registers.PC = self._get_effective_address(instruction)
 
     @InstructionDecorator(
         opcode=0xA9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="LDA"
