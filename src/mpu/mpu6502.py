@@ -613,6 +613,24 @@ class MPU:
         """NOP (No OPeration)."""
         pass
 
+    @InstructionDecorator(
+        "ORA",
+        [
+            Opcode(0x09, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0x05, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0x15, 2, 4, AddressMode.ZEROPAGE_X),
+            Opcode(0x0D, 3, 4, AddressMode.ABSOLUTE),
+            Opcode(0x1D, 3, 4, AddressMode.ABSOLUTE_X),
+            Opcode(0x19, 3, 4, AddressMode.ABSOLUTE_Y),
+            Opcode(0x01, 2, 6, AddressMode.INDIRECT_X),
+            Opcode(0x11, 2, 5, AddressMode.INDIRECT_Y),
+        ],
+    )
+    def inst_ORA(self, instruction: DecodedInstruction):
+        """ORA (bitwise OR with Accumulator)."""
+        self._registers.A |= self._get_decoded_value(instruction)
+        self._registers.modify_nz_flags(self._registers.A)
+
     @InstructionDecorator("RTS", [Opcode(0x60, 1, 6, AddressMode.IMPLIED)])
     def inst_RTS(self, instruction: DecodedInstruction):
         """RTS (ReTurn from Subroutine)."""
