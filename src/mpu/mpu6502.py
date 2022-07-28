@@ -521,6 +521,12 @@ class MPU:
         """JMP (JuMP)."""
         self.registers.PC = self._get_effective_address(instruction)
 
+    @InstructionDecorator("JSR", [Opcode(0x20, 3, 6, AddressMode.ABSOLUTE)])
+    def inst_JSR(self, instruction: DecodedInstruction):
+        """JSR (Jump to SubRoutine)."""
+        self._push_word(self.registers.PC - 1)
+        self.registers.PC = self._get_effective_address(instruction)
+
     @InstructionDecorator(
         "LDA",
         [
@@ -538,6 +544,11 @@ class MPU:
         """LDA (LoaD Accumulator)."""
         self._registers.A = self._get_decoded_value(instruction)
         self._registers.modify_nz_flags(self._registers.A)
+
+    @InstructionDecorator("RTS", [Opcode(0x60, 1, 6, AddressMode.IMPLIED)])
+    def inst_RTS(self, instruction: DecodedInstruction):
+        """RTS (ReTurn from Subroutine)."""
+        self._registers.PC = self._pop_word() + 1
 
     @InstructionDecorator("SEC", [Opcode(0x38, 1, 2, AddressMode.IMPLIED)])
     def inst_SEC(self, instruction: DecodedInstruction):
