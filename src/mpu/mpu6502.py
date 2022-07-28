@@ -147,6 +147,8 @@ class MPU:
             return instruction.operand
         elif instruction.address_mode == AddressMode.ZEROPAGE_X:
             return (instruction.operand + self._registers.X) & 0xFF
+        elif instruction.address_mode == AddressMode.ZEROPAGE_Y:
+            return (instruction.operand + self._registers.Y) & 0xFF
         elif instruction.address_mode == AddressMode.ABSOLUTE_X:
             # Check for extra cycle on page boundary crossing
             if (instruction.operand & 0x00FF) + self._registers.X > 0xFF:
@@ -544,6 +546,36 @@ class MPU:
         """LDA (LoaD Accumulator)."""
         self._registers.A = self._get_decoded_value(instruction)
         self._registers.modify_nz_flags(self._registers.A)
+
+    @InstructionDecorator(
+        "LDX",
+        [
+            Opcode(0xA2, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0xA6, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0xB6, 2, 4, AddressMode.ZEROPAGE_Y),
+            Opcode(0xAE, 3, 4, AddressMode.ABSOLUTE),
+            Opcode(0xBE, 3, 4, AddressMode.ABSOLUTE_Y),
+        ],
+    )
+    def inst_LDX(self, instruction: DecodedInstruction):
+        """LDX (LoaD X register)."""
+        self._registers.X = self._get_decoded_value(instruction)
+        self._registers.modify_nz_flags(self._registers.X)
+
+    @InstructionDecorator(
+        "LDY",
+        [
+            Opcode(0xA0, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0xA4, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0xB4, 2, 4, AddressMode.ZEROPAGE_X),
+            Opcode(0xAC, 3, 4, AddressMode.ABSOLUTE),
+            Opcode(0xBC, 3, 4, AddressMode.ABSOLUTE_X),
+        ],
+    )
+    def inst_LDY(self, instruction: DecodedInstruction):
+        """LDY (LoaD Y register)."""
+        self._registers.Y = self._get_decoded_value(instruction)
+        self._registers.modify_nz_flags(self._registers.Y)
 
     @InstructionDecorator("RTS", [Opcode(0x60, 1, 6, AddressMode.IMPLIED)])
     def inst_RTS(self, instruction: DecodedInstruction):

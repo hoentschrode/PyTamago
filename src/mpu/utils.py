@@ -14,6 +14,7 @@ class AddressMode(Enum):
     IMMEDIATE = auto()
     ZEROPAGE = auto()
     ZEROPAGE_X = auto()
+    ZEROPAGE_Y = auto()
     ABSOLUTE = auto()
     ABSOLUTE_X = auto()
     ABSOLUTE_Y = auto()
@@ -57,6 +58,8 @@ class DecodedInstruction(Instruction):
             return f" ${self.operand:02X}"
         elif self.address_mode == AddressMode.ZEROPAGE_X:
             return f" ${self.operand:02X},X"
+        elif self.address_mode == AddressMode.ZEROPAGE_Y:
+            return f" ${self.operand:02X},Y"
         elif self.address_mode == AddressMode.ABSOLUTE:
             return f" ${self.operand:04X}"
         elif self.address_mode == AddressMode.ABSOLUTE_X:
