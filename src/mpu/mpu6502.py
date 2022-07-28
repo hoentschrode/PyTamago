@@ -3,6 +3,7 @@ from typing import List, Optional
 from .utils import (
     Instruction,
     DecodedInstruction,
+    Opcode,
     make_instruction_decorator,
     Registers,
     Flag,
@@ -211,28 +212,17 @@ class MPU:
         self.registers.modify_nz_flags((register_value - value_to_compare))
 
     @InstructionDecorator(
-        opcode=0x69, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="ADC"
-    )
-    @InstructionDecorator(
-        opcode=0x65, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="ADC"
-    )
-    @InstructionDecorator(
-        opcode=0x75, bytes=2, cycles=4, address_mode=AddressMode.ZEROPAGE_X, mnemonic="ADC"
-    )
-    @InstructionDecorator(
-        opcode=0x6D, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="ADC"
-    )
-    @InstructionDecorator(
-        opcode=0x7D, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_X, mnemonic="ADC"
-    )
-    @InstructionDecorator(
-        opcode=0x79, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_Y, mnemonic="ADC"
-    )
-    @InstructionDecorator(
-        opcode=0x61, bytes=2, cycles=6, address_mode=AddressMode.INDIRECT_X, mnemonic="ADC"
-    )
-    @InstructionDecorator(
-        opcode=0x71, bytes=2, cycles=5, address_mode=AddressMode.INDIRECT_Y, mnemonic="ADC"
+        "ADC",
+        [
+            Opcode(0x69, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0x65, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0x75, 2, 4, AddressMode.ZEROPAGE_X),
+            Opcode(0x6D, 3, 4, AddressMode.ABSOLUTE),
+            Opcode(0x7D, 3, 4, AddressMode.ABSOLUTE_X),
+            Opcode(0x79, 3, 4, AddressMode.ABSOLUTE_Y),
+            Opcode(0x61, 2, 6, AddressMode.INDIRECT_X),
+            Opcode(0x71, 2, 5, AddressMode.INDIRECT_Y),
+        ],
     )
     def inst_ADC(self, instruction: DecodedInstruction):
         """ADC (ADd with Carry)."""
@@ -292,28 +282,17 @@ class MPU:
             self._registers.modify_nz_flags(self._registers.A)
 
     @InstructionDecorator(
-        opcode=0x29, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="AND"
-    )
-    @InstructionDecorator(
-        opcode=0x25, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="AND"
-    )
-    @InstructionDecorator(
-        opcode=0x35, bytes=2, cycles=4, address_mode=AddressMode.ZEROPAGE_X, mnemonic="AND"
-    )
-    @InstructionDecorator(
-        opcode=0x2D, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="AND"
-    )
-    @InstructionDecorator(
-        opcode=0x3D, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_X, mnemonic="AND"
-    )
-    @InstructionDecorator(
-        opcode=0x39, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_Y, mnemonic="AND"
-    )
-    @InstructionDecorator(
-        opcode=0x21, bytes=2, cycles=6, address_mode=AddressMode.INDIRECT_X, mnemonic="AND"
-    )
-    @InstructionDecorator(
-        opcode=0x31, bytes=2, cycles=5, address_mode=AddressMode.INDIRECT_Y, mnemonic="AND"
+        "AND",
+        [
+            Opcode(0x29, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0x25, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0x35, 2, 4, AddressMode.ZEROPAGE_X),
+            Opcode(0x2D, 3, 4, AddressMode.ABSOLUTE),
+            Opcode(0x3D, 3, 4, AddressMode.ABSOLUTE_X),
+            Opcode(0x39, 3, 4, AddressMode.ABSOLUTE_Y),
+            Opcode(0x21, 2, 6, AddressMode.INDIRECT_X),
+            Opcode(0x31, 2, 5, AddressMode.INDIRECT_Y),
+        ],
     )
     def inst_AND(self, instruction: DecodedInstruction):
         """AND (bitwise AND with accumulator)."""
@@ -321,19 +300,14 @@ class MPU:
         self._registers.modify_nz_flags(self._registers.A)
 
     @InstructionDecorator(
-        opcode=0x0A, bytes=1, cycles=2, address_mode=AddressMode.ACCUMULATOR, mnemonic="ASL"
-    )
-    @InstructionDecorator(
-        opcode=0x06, bytes=2, cycles=5, address_mode=AddressMode.ZEROPAGE, mnemonic="ASL"
-    )
-    @InstructionDecorator(
-        opcode=0x16, bytes=2, cycles=6, address_mode=AddressMode.ZEROPAGE_X, mnemonic="ASL"
-    )
-    @InstructionDecorator(
-        opcode=0x0E, bytes=3, cycles=6, address_mode=AddressMode.ABSOLUTE, mnemonic="ASL"
-    )
-    @InstructionDecorator(
-        opcode=0x1E, bytes=3, cycles=7, address_mode=AddressMode.ABSOLUTE_X, mnemonic="ASL"
+        "ASL",
+        [
+            Opcode(0x0A, 1, 2, AddressMode.ACCUMULATOR),
+            Opcode(0x06, 2, 5, AddressMode.ZEROPAGE),
+            Opcode(0x16, 2, 6, AddressMode.ZEROPAGE_X),
+            Opcode(0x0E, 3, 6, AddressMode.ABSOLUTE),
+            Opcode(0x1E, 3, 7, AddressMode.ABSOLUTE_X),
+        ],
     )
     def inst_ASL(self, instruction: DecodedInstruction):
         """ASL (Arithmetic Shift Left)."""
@@ -357,10 +331,11 @@ class MPU:
             self._set_byte_at(address, value)
 
     @InstructionDecorator(
-        opcode=0x24, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="BIT"
-    )
-    @InstructionDecorator(
-        opcode=0x2C, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="BIT"
+        "BIT",
+        [
+            Opcode(0x24, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0x2C, 3, 4, AddressMode.ABSOLUTE),
+        ],
     )
     def inst_BIT(self, instruction: DecodedInstruction):
         """BIT (test BITs)."""
@@ -369,65 +344,47 @@ class MPU:
         self.registers.modify_flag(Flag.NEGATIVE, (value & Flag.NEGATIVE.value) != 0)
         self.registers.modify_flag(Flag.OVERFLOW, (value & Flag.OVERFLOW.value) != 0)
 
-    @InstructionDecorator(
-        opcode=0x10, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BPL"
-    )
+    @InstructionDecorator("BPL", [Opcode(0x10, 2, 2, AddressMode.BRANCH)])
     def inst_BPL(self, instruction: DecodedInstruction):
         """BPL (Branch on PLus)."""
         self._modify_pc_for_conditional_branch(not self.registers.NEGATIVE, instruction)
 
-    @InstructionDecorator(
-        opcode=0x30, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BMI"
-    )
+    @InstructionDecorator("BMI", [Opcode(0x30, 2, 2, AddressMode.BRANCH)])
     def inst_BMI(self, instruction: DecodedInstruction):
         """BMI (Branch on MInus)."""
         self._modify_pc_for_conditional_branch(self.registers.NEGATIVE, instruction)
 
-    @InstructionDecorator(
-        opcode=0x50, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BVC"
-    )
+    @InstructionDecorator("BVC", [Opcode(0x50, 2, 2, AddressMode.BRANCH)])
     def inst_BVC(self, instruction: DecodedInstruction):
         """Branch on oVerflow Clear."""
         self._modify_pc_for_conditional_branch(not self.registers.OVERFLOW, instruction)
 
-    @InstructionDecorator(
-        opcode=0x70, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BVS"
-    )
+    @InstructionDecorator("BVS", [Opcode(0x70, 2, 2, AddressMode.BRANCH)])
     def inst_BVS(self, instruction: DecodedInstruction):
         """Branch on oVerflow Set."""
         self._modify_pc_for_conditional_branch(self.registers.OVERFLOW, instruction)
 
-    @InstructionDecorator(
-        opcode=0x90, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BCC"
-    )
+    @InstructionDecorator("BCC", [Opcode(0x90, 2, 2, AddressMode.BRANCH)])
     def inst_BCC(self, instruction: DecodedInstruction):
         """Branch on Carry Clear."""
         self._modify_pc_for_conditional_branch(not self.registers.CARRY, instruction)
 
-    @InstructionDecorator(
-        opcode=0xB0, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BCS"
-    )
+    @InstructionDecorator("BCS", [Opcode(0xB0, 2, 2, AddressMode.BRANCH)])
     def inst_BCS(self, instruction: DecodedInstruction):
         """Branch on Carry Set."""
         self._modify_pc_for_conditional_branch(self.registers.CARRY, instruction)
 
-    @InstructionDecorator(
-        opcode=0xD0, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BNE"
-    )
+    @InstructionDecorator("BNE", [Opcode(0xD0, 2, 2, AddressMode.BRANCH)])
     def inst_BNE(self, instruction: DecodedInstruction):
         """Branch on Not Equal."""
         self._modify_pc_for_conditional_branch(not self.registers.ZERO, instruction)
 
-    @InstructionDecorator(
-        opcode=0xF0, bytes=2, cycles=2, address_mode=AddressMode.BRANCH, mnemonic="BEQ"
-    )
+    @InstructionDecorator("BEQ", [Opcode(0xF0, 2, 2, AddressMode.BRANCH)])
     def inst_BEQ(self, instruction: DecodedInstruction):
         """Branch on EQual."""
         self._modify_pc_for_conditional_branch(self.registers.ZERO, instruction)
 
-    @InstructionDecorator(
-        opcode=0x00, bytes=1, cycles=7, address_mode=AddressMode.IMPLIED, mnemonic="BRK"
-    )
+    @InstructionDecorator("BRK", [Opcode(0x00, 1, 2, AddressMode.IMPLIED)])
     def inst_BRK(self, instruction: DecodedInstruction):
         """BReaK."""
         self.registers.PC += 1
@@ -439,57 +396,38 @@ class MPU:
         self._registers.set_flag(Flag.INTERRUPT)
         self._registers.PC = self._get_word_at(self.MEM_VECTOR_IRQ_BRK)
 
-    @InstructionDecorator(
-        opcode=0x18, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="CLC"
-    )
+    @InstructionDecorator("CLC", [Opcode(0x18, 1, 2, AddressMode.IMPLIED)])
     def inst_CLC(self, instruction: DecodedInstruction):
         """CLC (CLear Carry)."""
         self.registers.reset_flag(Flag.CARRY)
 
-    @InstructionDecorator(
-        opcode=0xD8, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="CLD"
-    )
+    @InstructionDecorator("CLD", [Opcode(0xD8, 1, 2, AddressMode.IMPLIED)])
     def inst_CLD(self, instruction: DecodedInstruction):
         """CLD (CLear Decimal)."""
         self.registers.reset_flag(Flag.DECIMAL)
 
-    @InstructionDecorator(
-        opcode=0x58, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="CLI"
-    )
+    @InstructionDecorator("CLI", [Opcode(0x58, 1, 2, AddressMode.IMPLIED)])
     def inst_CLI(self, instruction: DecodedInstruction):
         """CLI (CLear Interrupt)."""
         self.registers.reset_flag(Flag.INTERRUPT)
 
-    @InstructionDecorator(
-        opcode=0xB8, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="CLV"
-    )
+    @InstructionDecorator("CLV", [Opcode(0xB8, 1, 2, AddressMode.IMPLIED)])
     def inst_CLV(self, instruction: DecodedInstruction):
         """CLV (CLear oVerflow)."""
         self.registers.reset_flag(Flag.OVERFLOW)
 
     @InstructionDecorator(
-        opcode=0xC9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="CMP"
-    )
-    @InstructionDecorator(
-        opcode=0xC5, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="CMP"
-    )
-    @InstructionDecorator(
-        opcode=0xD5, bytes=2, cycles=4, address_mode=AddressMode.ZEROPAGE_X, mnemonic="CMP"
-    )
-    @InstructionDecorator(
-        opcode=0xCD, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="CMP"
-    )
-    @InstructionDecorator(
-        opcode=0xDD, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_X, mnemonic="CMP"
-    )
-    @InstructionDecorator(
-        opcode=0xD9, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_Y, mnemonic="CMP"
-    )
-    @InstructionDecorator(
-        opcode=0xC1, bytes=2, cycles=6, address_mode=AddressMode.INDIRECT_X, mnemonic="CMP"
-    )
-    @InstructionDecorator(
-        opcode=0xD1, bytes=2, cycles=5, address_mode=AddressMode.INDIRECT_Y, mnemonic="CMP"
+        "CMP",
+        [
+            Opcode(0xC9, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0xC5, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0xD5, 2, 4, AddressMode.ZEROPAGE_X),
+            Opcode(0xCD, 3, 4, AddressMode.ABSOLUTE),
+            Opcode(0xDD, 3, 4, AddressMode.ABSOLUTE_X),
+            Opcode(0xD9, 3, 4, AddressMode.ABSOLUTE_Y),
+            Opcode(0xC1, 2, 6, AddressMode.INDIRECT_X),
+            Opcode(0xD1, 2, 5, AddressMode.INDIRECT_Y),
+        ],
     )
     def inst_CMP(self, instruction: DecodedInstruction):
         """CMP (CoMPare accumulator)."""
@@ -497,13 +435,12 @@ class MPU:
         self._cmp_x(self.registers.A, value)
 
     @InstructionDecorator(
-        opcode=0xE0, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="CPX"
-    )
-    @InstructionDecorator(
-        opcode=0xE4, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="CPX"
-    )
-    @InstructionDecorator(
-        opcode=0xEC, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="CPX"
+        "CPX",
+        [
+            Opcode(0xE0, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0xE4, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0xEC, 3, 4, AddressMode.ABSOLUTE),
+        ],
     )
     def inst_CPX(self, instruction: DecodedInstruction):
         """CPX (ComPare X register)."""
@@ -511,13 +448,12 @@ class MPU:
         self._cmp_x(self.registers.X, value)
 
     @InstructionDecorator(
-        opcode=0xC0, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="CPY"
-    )
-    @InstructionDecorator(
-        opcode=0xC4, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="CPY"
-    )
-    @InstructionDecorator(
-        opcode=0xCC, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="CPY"
+        "CPY",
+        [
+            Opcode(0xC0, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0xC4, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0xCC, 3, 4, AddressMode.ABSOLUTE),
+        ],
     )
     def inst_CPY(self, instruction: DecodedInstruction):
         """CPY (ComPare Y register)."""
@@ -525,16 +461,13 @@ class MPU:
         self._cmp_x(self.registers.Y, value)
 
     @InstructionDecorator(
-        opcode=0xC6, bytes=2, cycles=5, address_mode=AddressMode.ZEROPAGE, mnemonic="DEC"
-    )
-    @InstructionDecorator(
-        opcode=0xD6, bytes=2, cycles=6, address_mode=AddressMode.ZEROPAGE_X, mnemonic="DEC"
-    )
-    @InstructionDecorator(
-        opcode=0xCE, bytes=3, cycles=6, address_mode=AddressMode.ABSOLUTE, mnemonic="DEC"
-    )
-    @InstructionDecorator(
-        opcode=0xDE, bytes=3, cycles=7, address_mode=AddressMode.ABSOLUTE_X, mnemonic="DEC"
+        "DEC",
+        [
+            Opcode(0xC6, 2, 5, AddressMode.ZEROPAGE),
+            Opcode(0xD6, 2, 6, AddressMode.ZEROPAGE_X),
+            Opcode(0xCE, 3, 6, AddressMode.ABSOLUTE),
+            Opcode(0xDE, 3, 7, AddressMode.ABSOLUTE_X),
+        ],
     )
     def inst_DEC(self, instruction: DecodedInstruction):
         """DEC (DECrement memory)."""
@@ -544,28 +477,17 @@ class MPU:
         self._set_byte_at(address, value)
 
     @InstructionDecorator(
-        opcode=0x49, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="EOR"
-    )
-    @InstructionDecorator(
-        opcode=0x45, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="EOR"
-    )
-    @InstructionDecorator(
-        opcode=0x55, bytes=2, cycles=4, address_mode=AddressMode.ZEROPAGE_X, mnemonic="EOR"
-    )
-    @InstructionDecorator(
-        opcode=0x4D, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="EOR"
-    )
-    @InstructionDecorator(
-        opcode=0x5D, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_X, mnemonic="EOR"
-    )
-    @InstructionDecorator(
-        opcode=0x59, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_Y, mnemonic="EOR"
-    )
-    @InstructionDecorator(
-        opcode=0x41, bytes=2, cycles=6, address_mode=AddressMode.INDIRECT_X, mnemonic="EOR"
-    )
-    @InstructionDecorator(
-        opcode=0x51, bytes=2, cycles=5, address_mode=AddressMode.INDIRECT_Y, mnemonic="EOR"
+        "EOR",
+        [
+            Opcode(0x49, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0x45, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0x55, 2, 4, AddressMode.ZEROPAGE_X),
+            Opcode(0x4D, 3, 4, AddressMode.ABSOLUTE),
+            Opcode(0x5D, 3, 4, AddressMode.ABSOLUTE_X),
+            Opcode(0x59, 3, 4, AddressMode.ABSOLUTE_Y),
+            Opcode(0x41, 2, 6, AddressMode.INDIRECT_X),
+            Opcode(0x51, 2, 5, AddressMode.INDIRECT_Y),
+        ],
     )
     def inst_EOR(self, instruction: DecodedInstruction):
         """EOR (bitwise Exclusive OR)."""
@@ -573,16 +495,13 @@ class MPU:
         self._registers.modify_nz_flags(self._registers.A)
 
     @InstructionDecorator(
-        opcode=0xE6, bytes=2, cycles=5, address_mode=AddressMode.ZEROPAGE, mnemonic="INC"
-    )
-    @InstructionDecorator(
-        opcode=0xF6, bytes=2, cycles=6, address_mode=AddressMode.ZEROPAGE_X, mnemonic="INC"
-    )
-    @InstructionDecorator(
-        opcode=0xEE, bytes=3, cycles=6, address_mode=AddressMode.ABSOLUTE, mnemonic="INC"
-    )
-    @InstructionDecorator(
-        opcode=0xFE, bytes=3, cycles=7, address_mode=AddressMode.ABSOLUTE_X, mnemonic="INC"
+        "INC",
+        [
+            Opcode(0xE6, 2, 5, AddressMode.ZEROPAGE),
+            Opcode(0xF6, 2, 6, AddressMode.ZEROPAGE_X),
+            Opcode(0xEE, 3, 6, AddressMode.ABSOLUTE),
+            Opcode(0xFE, 3, 7, AddressMode.ABSOLUTE_X),
+        ],
     )
     def inst_INC(self, instruction: DecodedInstruction):
         """INC (INCrement memory)."""
@@ -592,61 +511,45 @@ class MPU:
         self._set_byte_at(address, value)
 
     @InstructionDecorator(
-        opcode=0x4C, bytes=3, cycles=3, address_mode=AddressMode.ABSOLUTE, mnemonic="JMP"
-    )
-    @InstructionDecorator(
-        opcode=0x6C, bytes=3, cycles=5, address_mode=AddressMode.INDIRECT, mnemonic="JMP"
+        "JMP",
+        [
+            Opcode(0x4C, 3, 3, AddressMode.ABSOLUTE),
+            Opcode(0x6C, 3, 4, AddressMode.INDIRECT),
+        ],
     )
     def inst_JMP(self, instruction: DecodedInstruction):
         """JMP (JuMP)."""
         self.registers.PC = self._get_effective_address(instruction)
 
     @InstructionDecorator(
-        opcode=0xA9, bytes=2, cycles=2, address_mode=AddressMode.IMMEDIATE, mnemonic="LDA"
-    )
-    @InstructionDecorator(
-        opcode=0xA5, bytes=2, cycles=3, address_mode=AddressMode.ZEROPAGE, mnemonic="LDA"
-    )
-    @InstructionDecorator(
-        opcode=0xB5, bytes=2, cycles=4, address_mode=AddressMode.ZEROPAGE_X, mnemonic="LDA"
-    )
-    @InstructionDecorator(
-        opcode=0xAD, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE, mnemonic="LDA"
-    )
-    @InstructionDecorator(
-        opcode=0xBD, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_X, mnemonic="LDA"
-    )
-    @InstructionDecorator(
-        opcode=0xB9, bytes=3, cycles=4, address_mode=AddressMode.ABSOLUTE_Y, mnemonic="LDA"
-    )
-    @InstructionDecorator(
-        opcode=0xA1, bytes=2, cycles=6, address_mode=AddressMode.INDIRECT_X, mnemonic="LDA"
-    )
-    @InstructionDecorator(
-        opcode=0xB1, bytes=2, cycles=5, address_mode=AddressMode.INDIRECT_Y, mnemonic="LDA"
+        "LDA",
+        [
+            Opcode(0xA9, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0xA5, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0xB5, 2, 4, AddressMode.ZEROPAGE_X),
+            Opcode(0xAD, 3, 4, AddressMode.ABSOLUTE),
+            Opcode(0xBD, 3, 4, AddressMode.ABSOLUTE_X),
+            Opcode(0xB9, 3, 4, AddressMode.ABSOLUTE_Y),
+            Opcode(0xA1, 2, 6, AddressMode.INDIRECT_X),
+            Opcode(0xB1, 2, 5, AddressMode.INDIRECT_Y),
+        ],
     )
     def inst_LDA(self, instruction: DecodedInstruction):
         """LDA (LoaD Accumulator)."""
         self._registers.A = self._get_decoded_value(instruction)
         self._registers.modify_nz_flags(self._registers.A)
 
-    @InstructionDecorator(
-        opcode=0x38, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="SEC"
-    )
+    @InstructionDecorator("SEC", [Opcode(0x38, 1, 2, AddressMode.IMPLIED)])
     def inst_SEC(self, instruction: DecodedInstruction):
         """SEC (SEt Carry)."""
         self.registers.set_flag(Flag.CARRY)
 
-    @InstructionDecorator(
-        opcode=0xF8, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="SED"
-    )
+    @InstructionDecorator("SED", [Opcode(0xF8, 1, 2, AddressMode.IMPLIED)])
     def inst_SED(self, instruction: DecodedInstruction):
         """SED (SEt Decimal)."""
         self.registers.set_flag(Flag.DECIMAL)
 
-    @InstructionDecorator(
-        opcode=0x78, bytes=1, cycles=2, address_mode=AddressMode.IMPLIED, mnemonic="SEI"
-    )
+    @InstructionDecorator("SEI", [Opcode(0x78, 1, 2, AddressMode.IMPLIED)])
     def inst_SEI(self, instruction: DecodedInstruction):
         """SEI (SEt Interrupt)."""
         self.registers.set_flag(Flag.INTERRUPT)

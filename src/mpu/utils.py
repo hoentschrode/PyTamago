@@ -222,17 +222,30 @@ class Registers:
         )
 
 
+@dataclass
+class Opcode:
+    """Describe a single opcode and it's address mode."""
+
+    opcode: int
+    bytes: int
+    cycles: int
+    address_mode: AddressMode
+
+
 def make_instruction_decorator(instructions: List[Instruction]):
     """Create the instruction decorator."""
 
-    def InstructionDecorator(
-        opcode=0, bytes=0, cycles=0, address_mode=AddressMode.NONE, mnemonic="???"
-    ):
+    def InstructionDecorator(mnemonic: str, opcodes: List[Opcode]):
         def decorate(func):
-            # opcode = int(func.__name__[5:9], base=16)
-            instructions[opcode] = Instruction(
-                opcode, cycles, bytes, mnemonic, address_mode, exec=func
-            )
+            for opcode in opcodes:
+                instructions[opcode.opcode] = Instruction(
+                    opcode.opcode,
+                    opcode.cycles,
+                    opcode.bytes,
+                    mnemonic,
+                    opcode.address_mode,
+                    exec=func,
+                )
             return func
 
         return decorate
