@@ -608,6 +608,11 @@ class MPU:
         else:
             self._set_byte_at(address, value)
 
+    @InstructionDecorator("NOP", [Opcode(0xEA, 1, 2, AddressMode.IMPLIED)])
+    def inst_NOP(self, instruction: DecodedInstruction):
+        """NOP (No OPeration)."""
+        pass
+
     @InstructionDecorator("RTS", [Opcode(0x60, 1, 6, AddressMode.IMPLIED)])
     def inst_RTS(self, instruction: DecodedInstruction):
         """RTS (ReTurn from Subroutine)."""
