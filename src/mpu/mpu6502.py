@@ -577,6 +577,37 @@ class MPU:
         self._registers.Y = self._get_decoded_value(instruction)
         self._registers.modify_nz_flags(self._registers.Y)
 
+    @InstructionDecorator(
+        "LSR",
+        [
+            Opcode(0x4A, 1, 2, AddressMode.ACCUMULATOR),
+            Opcode(0x46, 2, 5, AddressMode.ZEROPAGE),
+            Opcode(0x56, 2, 6, AddressMode.ZEROPAGE_X),
+            Opcode(0x4E, 3, 6, AddressMode.ABSOLUTE),
+            Opcode(0x5E, 3, 7, AddressMode.ABSOLUTE_X),
+        ],
+    )
+    def inst_LSR(self, instruction: DecodedInstruction):
+        """LSR (Logical Shift Right)."""
+        # Fetch
+        address = None
+        if instruction.address_mode == AddressMode.ACCUMULATOR:
+            value = self.registers.A
+        else:
+            address = self._get_effective_address(instruction)
+            value = self._get_byte_at(address)
+
+        # Do
+        self.registers.modify_flag(Flag.CARRY, (value & 0x01) != 0)
+        value = (value & 0xFF) >> 1
+        self.registers.modify_nz_flags(value)
+
+        # Write
+        if instruction.address_mode == AddressMode.ACCUMULATOR:
+            self._registers.A = value
+        else:
+            self._set_byte_at(address, value)
+
     @InstructionDecorator("RTS", [Opcode(0x60, 1, 6, AddressMode.IMPLIED)])
     def inst_RTS(self, instruction: DecodedInstruction):
         """RTS (ReTurn from Subroutine)."""
