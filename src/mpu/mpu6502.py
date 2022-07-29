@@ -655,6 +655,70 @@ class MPU:
         self._registers.A |= self._get_decoded_value(instruction)
         self._registers.modify_nz_flags(self._registers.A)
 
+    @InstructionDecorator(
+        "ROL",
+        [
+            Opcode(0x2A, 1, 2, AddressMode.ACCUMULATOR),
+            Opcode(0x26, 2, 5, AddressMode.ZEROPAGE),
+            Opcode(0x36, 2, 6, AddressMode.ZEROPAGE_X),
+            Opcode(0x2E, 3, 6, AddressMode.ABSOLUTE),
+            Opcode(0x3E, 3, 7, AddressMode.ABSOLUTE_X),
+        ],
+    )
+    def inst_ROL(self, instruction: DecodedInstruction):
+        """ROL (ROtate Left)."""
+        # Fetch
+        address = None
+        if instruction.address_mode == AddressMode.ACCUMULATOR:
+            value = self.registers.A
+        else:
+            address = self._get_effective_address(instruction)
+            value = self._get_byte_at(address)
+
+        # Do
+        carry_in = 1 if self.registers.CARRY else 0
+        self.registers.modify_flag(Flag.CARRY, (value & 0x80) != 0)
+        value = ((value << 1) & 0xFF) | carry_in
+        self.registers.modify_nz_flags(value)
+
+        # Write
+        if instruction.address_mode == AddressMode.ACCUMULATOR:
+            self._registers.A = value
+        else:
+            self._set_byte_at(address, value)
+
+    @InstructionDecorator(
+        "ROR",
+        [
+            Opcode(0x6A, 1, 2, AddressMode.ACCUMULATOR),
+            Opcode(0x66, 2, 5, AddressMode.ZEROPAGE),
+            Opcode(0x76, 2, 6, AddressMode.ZEROPAGE_X),
+            Opcode(0x6E, 3, 6, AddressMode.ABSOLUTE),
+            Opcode(0x7E, 3, 7, AddressMode.ABSOLUTE_X),
+        ],
+    )
+    def inst_ROR(self, instruction: DecodedInstruction):
+        """ROR (ROtate Right)."""
+        # Fetch
+        address = None
+        if instruction.address_mode == AddressMode.ACCUMULATOR:
+            value = self.registers.A
+        else:
+            address = self._get_effective_address(instruction)
+            value = self._get_byte_at(address)
+
+        # Do
+        carry_in = 0x80 if self.registers.CARRY else 0
+        self.registers.modify_flag(Flag.CARRY, (value & 0x01) != 0)
+        value = ((value >> 1) & 0xFF) | carry_in
+        self.registers.modify_nz_flags(value)
+
+        # Write
+        if instruction.address_mode == AddressMode.ACCUMULATOR:
+            self._registers.A = value
+        else:
+            self._set_byte_at(address, value)
+
     @InstructionDecorator("RTS", [Opcode(0x60, 1, 6, AddressMode.IMPLIED)])
     def inst_RTS(self, instruction: DecodedInstruction):
         """RTS (ReTurn from Subroutine)."""
