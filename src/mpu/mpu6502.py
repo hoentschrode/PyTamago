@@ -4,6 +4,7 @@ from .utils import (
     Instruction,
     DecodedInstruction,
     Opcode,
+    dec_to_two_complement,
     make_instruction_decorator,
     Registers,
     Flag,
@@ -729,6 +730,80 @@ class MPU:
     def inst_RTS(self, instruction: DecodedInstruction):
         """RTS (ReTurn from Subroutine)."""
         self._registers.PC = self._pop_word() + 1
+
+    @InstructionDecorator(
+        "SBC",
+        [
+            Opcode(0xE9, 2, 2, AddressMode.IMMEDIATE),
+            Opcode(0xE5, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0xF5, 2, 4, AddressMode.ZEROPAGE_X),
+            Opcode(0xED, 3, 4, AddressMode.ABSOLUTE),
+            Opcode(0xFD, 3, 4, AddressMode.ABSOLUTE_X),
+            Opcode(0xF9, 3, 4, AddressMode.ABSOLUTE_Y),
+            Opcode(0xE1, 2, 6, AddressMode.INDIRECT_X),
+            Opcode(0xF1, 2, 5, AddressMode.INDIRECT_Y),
+        ],
+    )
+    def inst_SBC(self, instruction: DecodedInstruction):
+        """SBC (SuBtract with Carry)."""
+        value = self._get_decoded_value(instruction)
+        if self._registers.DECIMAL:
+            # Decimal mode
+            half_carry = 1
+            low_nibble_adjustment = 0
+            low_nibble = (
+                (~value & 0x0F) + (self.registers.A & 0x0F) + (1 if self._registers.CARRY else 0)
+            )
+            if low_nibble <= 0xF:
+                half_carry = 0
+                low_nibble_adjustment = 10
+
+            high_nibble_adjustment = 0
+            high_nibble = (~value >> 4) & 0x0F + ((self.registers.A >> 4) & 0x0F) + half_carry
+            if high_nibble <= 0x0F:
+                high_nibble_adjustment = 10 << 4
+
+            # Non-decimal-adjusted result to evaluate flags
+            result = (
+                self.registers.A
+                + (dec_to_two_complement(-value))
+                + (1 if self._registers.CARRY else 0)
+            )
+            self._registers.modify_flag(Flag.CARRY, result > 0xFF)
+            result &= 0xFF
+
+            self._registers.modify_nz_flags(result)
+            self._registers.modify_flag(
+                Flag.OVERFLOW,
+                (~(self._registers.A ^ value) & (self._registers.A ^ result)) & 0b1000_0000 > 0,
+            )
+
+            # Decimal adjustment for A
+            low_nibble = (result + low_nibble_adjustment) & 0x0F
+            high_nibble = ((result + high_nibble_adjustment) >> 4) & 0x0F
+            self._registers.A = (high_nibble << 4) + low_nibble
+
+        else:
+            # Binary mode
+            result = (
+                self._registers.A
+                + dec_to_two_complement(-value)
+                + (1 if self._registers.CARRY else 0)
+            )
+            # Reset all affected flags C, V, N and Z
+            self._registers.reset_flags([Flag.CARRY, Flag.OVERFLOW, Flag.NEGATIVE, Flag.ZERO])
+
+            # Refer to: https://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
+            n7 = (self._registers.A & 0b1000_0000) != 0
+            m7 = (~value & 0b1000_0000) != 0
+            c6 = ((self._registers.A & 0b0100_0000) >> 6) and ((~value & 0b0100_0000) >> 6)
+            self._registers.modify_flag(
+                Flag.OVERFLOW, (not m7 and not n7 and c6) or (m7 and n7 and not c6)
+            )
+
+            self._registers.modify_flag(Flag.CARRY, result > 0xFF)
+            self._registers.A = result & 0xFF
+            self._registers.modify_nz_flags(self._registers.A)
 
     @InstructionDecorator("SEC", [Opcode(0x38, 1, 2, AddressMode.IMPLIED)])
     def inst_SEC(self, instruction: DecodedInstruction):
