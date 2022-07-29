@@ -478,6 +478,18 @@ class MPU:
         self.registers.modify_nz_flags(value)
         self._set_byte_at(address, value)
 
+    @InstructionDecorator("DEX", [Opcode(0xCA, 1, 2, AddressMode.IMPLIED)])
+    def inst_DEX(self, instruction: DecodedInstruction):
+        """DEX (DEcrement X)."""
+        self.registers.X = (self.registers.X - 1) & 0xFF
+        self.registers.modify_nz_flags(self._registers.X)
+
+    @InstructionDecorator("DEY", [Opcode(0x88, 1, 2, AddressMode.IMPLIED)])
+    def inst_DEY(self, instruction: DecodedInstruction):
+        """DEY (DEcrement Y)."""
+        self.registers.Y = (self.registers.Y - 1) & 0xFF
+        self.registers.modify_nz_flags(self._registers.Y)
+
     @InstructionDecorator(
         "EOR",
         [
@@ -511,6 +523,18 @@ class MPU:
         value = (self._get_byte_at(address) + 1) & 0xFF
         self.registers.modify_nz_flags(value)
         self._set_byte_at(address, value)
+
+    @InstructionDecorator("INX", [Opcode(0xE8, 1, 2, AddressMode.IMPLIED)])
+    def inst_INX(self, instruction: DecodedInstruction):
+        """INX (INcrement X)."""
+        self.registers.X = (self.registers.X + 1) & 0xFF
+        self.registers.modify_nz_flags(self._registers.X)
+
+    @InstructionDecorator("INY", [Opcode(0xC8, 1, 2, AddressMode.IMPLIED)])
+    def inst_INY(self, instruction: DecodedInstruction):
+        """INY (INcrement Y)."""
+        self.registers.Y = (self.registers.Y + 1) & 0xFF
+        self.registers.modify_nz_flags(self._registers.Y)
 
     @InstructionDecorator(
         "JMP",
@@ -650,3 +674,27 @@ class MPU:
     def inst_SEI(self, instruction: DecodedInstruction):
         """SEI (SEt Interrupt)."""
         self.registers.set_flag(Flag.INTERRUPT)
+
+    @InstructionDecorator("TAX", [Opcode(0xAA, 1, 2, AddressMode.IMPLIED)])
+    def inst_TAX(self, instruction: DecodedInstruction):
+        """TAX (Transfer A to X)."""
+        self.registers.X = self.registers.A
+        self.registers.modify_nz_flags(self.registers.X)
+
+    @InstructionDecorator("TXA", [Opcode(0x8A, 1, 2, AddressMode.IMPLIED)])
+    def inst_TXA(self, instruction: DecodedInstruction):
+        """TXA (Transfer X to A)."""
+        self.registers.A = self.registers.X
+        self.registers.modify_nz_flags(self.registers.A)
+
+    @InstructionDecorator("TAY", [Opcode(0xA8, 1, 2, AddressMode.IMPLIED)])
+    def inst_TAA(self, instruction: DecodedInstruction):
+        """TAY (Transfer A to Y)."""
+        self.registers.Y = self.registers.A
+        self.registers.modify_nz_flags(self.registers.Y)
+
+    @InstructionDecorator("TYA", [Opcode(0x98, 1, 2, AddressMode.IMPLIED)])
+    def inst_TYA(self, instruction: DecodedInstruction):
+        """TYA (Transfer Y to A)."""
+        self.registers.A = self.registers.Y
+        self.registers.modify_nz_flags(self.registers.A)
