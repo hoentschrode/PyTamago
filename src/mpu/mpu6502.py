@@ -719,6 +719,12 @@ class MPU:
         else:
             self._set_byte_at(address, value)
 
+    @InstructionDecorator("RTI", [Opcode(0x40, 1, 6, AddressMode.IMPLIED)])
+    def inst_RTI(self, instruction: DecodedInstruction):
+        """RTI (ReTurn from Interrupt)."""
+        self._registers.FLAGS = self._pop()
+        self._registers.PC = self._pop_word()
+
     @InstructionDecorator("RTS", [Opcode(0x60, 1, 6, AddressMode.IMPLIED)])
     def inst_RTS(self, instruction: DecodedInstruction):
         """RTS (ReTurn from Subroutine)."""
