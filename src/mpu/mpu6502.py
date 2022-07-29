@@ -820,6 +820,23 @@ class MPU:
         """SEI (SEt Interrupt)."""
         self.registers.set_flag(Flag.INTERRUPT)
 
+    @InstructionDecorator(
+        "STA",
+        [
+            Opcode(0x85, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0x95, 2, 4, AddressMode.ZEROPAGE_X),
+            Opcode(0x8D, 3, 4, AddressMode.ABSOLUTE),
+            Opcode(0x9D, 3, 4, AddressMode.ABSOLUTE_X),
+            Opcode(0x99, 3, 4, AddressMode.ABSOLUTE_Y),
+            Opcode(0x81, 2, 6, AddressMode.INDIRECT_X),
+            Opcode(0x91, 2, 5, AddressMode.INDIRECT_Y),
+        ],
+    )
+    def inst_STA(self, instruction: DecodedInstruction):
+        """STA (STore Accumulator)."""
+        self._set_byte_at(self._get_effective_address(instruction), self.registers.A)
+        pass
+
     @InstructionDecorator("TAX", [Opcode(0xAA, 1, 2, AddressMode.IMPLIED)])
     def inst_TAX(self, instruction: DecodedInstruction):
         """TAX (Transfer A to X)."""
