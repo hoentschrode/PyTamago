@@ -656,6 +656,26 @@ class MPU:
         self._registers.A |= self._get_decoded_value(instruction)
         self._registers.modify_nz_flags(self._registers.A)
 
+    @InstructionDecorator("PHA", [Opcode(0x48, 1, 3, AddressMode.IMPLIED)])
+    def inst_PHA(self, instruction: DecodedInstruction):
+        """PHA (PusH Accumulator)."""
+        self._push(self.registers.A)
+
+    @InstructionDecorator("PHP", [Opcode(0x08, 1, 3, AddressMode.IMPLIED)])
+    def inst_PHP(self, instruction: DecodedInstruction):
+        """PHP (PusH Processor status)."""
+        self._push(self.registers.FLAGS)
+
+    @InstructionDecorator("PLA", [Opcode(0x68, 1, 4, AddressMode.IMPLIED)])
+    def inst_PLA(self, instruction: DecodedInstruction):
+        """PLA (PuLl Accumulator)."""
+        self.registers.A = self._pop()
+
+    @InstructionDecorator("PLP", [Opcode(0x28, 1, 4, AddressMode.IMPLIED)])
+    def inst_PLP(self, instruction: DecodedInstruction):
+        """PLP (PuLl Processor status)."""
+        self.registers.FLAGS = self._pop()
+
     @InstructionDecorator(
         "ROL",
         [
@@ -843,11 +863,21 @@ class MPU:
         self.registers.X = self.registers.A
         self.registers.modify_nz_flags(self.registers.X)
 
+    @InstructionDecorator("TSX", [Opcode(0xBA, 1, 2, AddressMode.IMPLIED)])
+    def inst_TSX(self, instruction: DecodedInstruction):
+        """TSX (Transfer Stack ptr to X)."""
+        self.registers.X = self.registers.SP
+
     @InstructionDecorator("TXA", [Opcode(0x8A, 1, 2, AddressMode.IMPLIED)])
     def inst_TXA(self, instruction: DecodedInstruction):
         """TXA (Transfer X to A)."""
         self.registers.A = self.registers.X
         self.registers.modify_nz_flags(self.registers.A)
+
+    @InstructionDecorator("TXS", [Opcode(0x9A, 1, 2, AddressMode.IMPLIED)])
+    def inst_TXS(self, instruction: DecodedInstruction):
+        """TXS (Transfer X to Stack ptr)."""
+        self.registers.SP = self.registers.X
 
     @InstructionDecorator("TAY", [Opcode(0xA8, 1, 2, AddressMode.IMPLIED)])
     def inst_TAA(self, instruction: DecodedInstruction):
