@@ -855,7 +855,30 @@ class MPU:
     def inst_STA(self, instruction: DecodedInstruction):
         """STA (STore Accumulator)."""
         self._set_byte_at(self._get_effective_address(instruction), self.registers.A)
-        pass
+
+    @InstructionDecorator(
+        "STX",
+        [
+            Opcode(0x86, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0x96, 2, 4, AddressMode.ZEROPAGE_Y),
+            Opcode(0x8E, 3, 4, AddressMode.ABSOLUTE),
+        ],
+    )
+    def inst_STX(self, instruction: DecodedInstruction):
+        """STX (STore X register)."""
+        self._set_byte_at(self._get_effective_address(instruction), self.registers.X)
+
+    @InstructionDecorator(
+        "STY",
+        [
+            Opcode(0x84, 2, 3, AddressMode.ZEROPAGE),
+            Opcode(0x94, 2, 4, AddressMode.ZEROPAGE_X),
+            Opcode(0x8C, 3, 4, AddressMode.ABSOLUTE),
+        ],
+    )
+    def inst_STY(self, instruction: DecodedInstruction):
+        """STY (STore Y register)."""
+        self._set_byte_at(self._get_effective_address(instruction), self.registers.Y)
 
     @InstructionDecorator("TAX", [Opcode(0xAA, 1, 2, AddressMode.IMPLIED)])
     def inst_TAX(self, instruction: DecodedInstruction):
